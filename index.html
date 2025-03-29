@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" favicon href="https://static.vecteezy.com/system/resources/previews/002/564/314/non_2x/water-drops-check-mark-nature-liquid-blue-silhouette-style-icon-free-vector.jpg">
+    <title>Air and Water Quality Predictor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-size: cover; 
+            
+        }     
+        form {
+            width: 30%;
+            height: 40%;
+            margin: 40px auto;
+            padding: 20px;
+            background: #ffe9fb; background: -moz-linear-gradient(315deg,  #ffe9fb 0%,#e4fef6 100%); background: -webkit-linear-gradient(315deg,  #ffe9fb 0%,#e4fef6 100%); background: linear-gradient(315deg,  #ffe9fb 0%,#e4fef6 100%);
+            border: 1px solid #020202;
+            border-radius: 40px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);         
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 15px;
+            font-family: 'Times New Roman', Times, serif;
+        }
+        input[type="text"], input[type="radio"] {
+            width: 95%;
+            height: 30px;
+            margin-bottom: 5px;
+            border-radius: 30px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        input[type="submit"] {
+            width: 100%;
+            height: 40px;
+            background: #d4fc79; background: -moz-linear-gradient(to right,  #d4fc79 0%,#96e6a1 100%); background: -webkit-linear-gradient(to right,  #d4fc79 0%,#96e6a1 100%); background: linear-gradient(to right,  #d4fc79 0%,#96e6a1 100%);
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            border-radius: 40px;
+        }
+        input[type="submit"]:hover {
+            background-color: #3e8e41;
+        }
+        #result {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        h1{
+          background: #00537e; background: -moz-linear-gradient(to bottom,  #00537e 0%,#3aa17e 100%); background: -webkit-linear-gradient(to bottom,  #00537e 0%,#3aa17e 100%); background: linear-gradient(to bottom,  #00537e 0%,#3aa17e 100%); 
+          width: 50%;
+          border-radius: 10%;
+        }
+        .select{
+          height: 100%;
+          width: 100%;
+          background-image: url('https://developers.google.com/static/maps/images/landing/react-codelab-thumbnail.png');
+          background-size: cover;
+          animation: zoomEffect 5s infinite alternate ease-in-out;
+        }
+        @keyframes zoomEffect {
+            0% {
+                background-size: 100%;
+            }
+            100% {
+                background-size: 110%;
+            }
+        }        
+    </style>
+</head>
+<body>
+  <div class="select">    
+        <center> <h1>Air and Water Quality Predictor</h1></center>
+            <form id="predict-form">
+                <label for="state">State:</label>
+                <input type="text" id="state" name="state" placeholder="Enter name of the state"><br><br>
+                <label for="district">District:</label>
+                <input type="text" id="district" name="district" placeholder="Enter name of the district"><br><br>
+                <h3>Select any one:</h3>
+                <input type="radio" id="aqi" name="parameter" value="AQI">
+                <label for="aqi">Air Quality Index (AQI)</label><br>
+                <input type="radio" id="wqi" name="parameter" value="WQI">
+                <label for="wqi">Water Quality Index (WQI)</label><br><br>
+                <input type="submit" value="Predict">
+            </form>
+    </div>
+    <div id="result"></div>
+    <script>
+        let isSubmitting = false;
+        const form = document.getElementById('predict-form');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (isSubmitting) return; // Prevent multiple submissions
+            isSubmitting = true;
+            const state = document.getElementById('state').value.trim();
+            const district = document.getElementById('district').value.trim();
+            const parameter = document.querySelector('input[name="parameter"]:checked').value;
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `state=${state}&district=${district}&parameter=${parameter}`
+            })
+            .then((response) => response.json())
+            .then((data) => {
+                if ('error' in data) {
+                    alert(data.error);
+                } else {
+                    const resultDiv = document.getElementById('result');
+                    if (parameter === 'AQI') {
+                        if (data.result <= 50) {
+                            alert(`Predicted AQI: ${data.result}. GOOD!😊`);
+                        } else if (data.result <= 100) {
+                            alert(`Predicted AQI: ${data.result}. Moderate!🤔`);
+                        } else if (data.result <= 150) {
+                            alert(`Predicted AQI: ${data.result}. Unhealthy!🚨`);
+                        } else if (data.result <= 200) {
+                            alert(`Predicted AQI: ${data.result}. Very Unhealthy!😷`);
+                        } else if (data.result <= 300) {
+                            alert(`Predicted AQI: ${data.result}. Hazardous!🚨`);
+                        } else {
+                            alert(`Predicted AQI: ${data.result}. Extremely Hazardous!🚨`);
+                        }
+                    } else if (parameter === 'WQI') {
+                        if (data.result <= 50) {
+                            alert(`Predicted WQI: ${data.result}. GOOD!😊`);
+                        } else if (data.result <= 100) {
+                            alert(`Predicted WQI: ${data.result}. Moderate!🤔`);
+                        } else {
+                            alert(`Predicted WQI: ${data.result}. BAD!😔`);
+                        }
+                    }
+                }
+                isSubmitting = false; // Reset the flag
+            })
+            .catch((error) => {
+                console.error(error);
+                isSubmitting = false; // Reset the flag on error
+            });
+        });
+    </script>
+</body>
+</html>
